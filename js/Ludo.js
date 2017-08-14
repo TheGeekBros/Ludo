@@ -40,10 +40,9 @@ let Ludo = {
 
 		let gamePieces = this.game.board.querySelector('.pieces')
 
-		this.game.pieces.push(gamePieces.querySelector('.piece-1').cloneNode(false))
-		this.game.pieces.push(gamePieces.querySelector('.piece-2').cloneNode(false))
-		this.game.pieces.push(gamePieces.querySelector('.piece-3').cloneNode(false))
-		this.game.pieces.push(gamePieces.querySelector('.piece-4').cloneNode(false))
+		Array.from(gamePieces.children).forEach((piece) => {
+			this.game.pieces.push(piece.cloneNode(false))
+		})
 
 		this.game.board.removeChild(this.game.board.querySelector('.pieces'))
 
@@ -53,8 +52,7 @@ let Ludo = {
 		this.background.style.width = this.overlay.style.width = this.radius + 'px'
 		this.background.style.height = this.overlay.style.height = this.radius + 'px'
 
-		let humanCount = Number(this.opponents[0])
-		let cpuCount = Number(this.opponents[2])
+		let humanCount = Number(this.opponents[0]), cpuCount = Number(this.opponents[2])
 
 		for (let p = 0; p < humanCount + cpuCount; p++) {
 			let player = {isCpu: p < humanCount}
@@ -81,6 +79,5 @@ let Ludo = {
 		this.overlay.querySelectorAll('.piece').forEach((element) => {
 			element.style.height = element.style.width = this.unit + 'px'
 		})
-
 	},
 }
