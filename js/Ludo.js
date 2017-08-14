@@ -12,7 +12,7 @@ let Ludo = {
 				{x: 11.5, y: 11.5}, // yellow (3)
 				{x: 2.5, y: 2.5},   // red (4)
 			],
-			homeOffset : [
+			homeOffset: [
 				[-1, -1], [-1, 1], [1, -1], [1, 1]
 			]
 		}
@@ -20,16 +20,16 @@ let Ludo = {
 
 	init(customSettings) {
 		let settings = {
-				radius: 640,
-				unit: 640 / 15,
-				boardStyle: 'simple-board',
-				opponents: '2-1', // fix symmetry
-			}
+			radius: 640,
+			unit: 640 / 15,
+			boardStyle: 'simple-board',
+			opponents: '1-1', // fix symmetry
+		}
 		Object.assign(settings, customSettings)
-		this.unit = settings.radius / 15
 		this.boardStyle = settings.boardStyle
 		this.opponents = settings.opponents
 		this.radius = settings.radius
+		this.unit = settings.radius / 15
 		this.resetBoard()
 	},
 
@@ -38,10 +38,13 @@ let Ludo = {
 		this.game.board = Components.new(this.boardStyle)
 		this.context.appendChild(this.game.board)
 
-		this.game.pieces.push(this.game.board.querySelector('.pieces').querySelector('.piece-1').cloneNode(false))
-		this.game.pieces.push(this.game.board.querySelector('.pieces').querySelector('.piece-2').cloneNode(false))
-		this.game.pieces.push(this.game.board.querySelector('.pieces').querySelector('.piece-3').cloneNode(false))
-		this.game.pieces.push(this.game.board.querySelector('.pieces').querySelector('.piece-4').cloneNode(false))
+		let gamePieces = this.game.board.querySelector('.pieces')
+
+		this.game.pieces.push(gamePieces.querySelector('.piece-1').cloneNode(false))
+		this.game.pieces.push(gamePieces.querySelector('.piece-2').cloneNode(false))
+		this.game.pieces.push(gamePieces.querySelector('.piece-3').cloneNode(false))
+		this.game.pieces.push(gamePieces.querySelector('.piece-4').cloneNode(false))
+
 		this.game.board.removeChild(this.game.board.querySelector('.pieces'))
 
 		this.background = this.game.board.querySelector('.background')
@@ -64,11 +67,11 @@ let Ludo = {
 		for (let playerIndex = 0; playerIndex < this.game.playersCount; playerIndex++) {
 			for (let pieceIndex = 0; pieceIndex < 4; pieceIndex++) {
 				let piece = this.game.pieces[playerIndex].cloneNode(false)
-				piece.style.position = 'absolute'
 				let x = this.game.defaultPositions.home[playerIndex].x
 				let y = this.game.defaultPositions.home[playerIndex].y
 				let pieceOffsetX = this.game.defaultPositions.homeOffset[pieceIndex][0]
 				let pieceOffsetY = this.game.defaultPositions.homeOffset[pieceIndex][1]
+				piece.style.position = 'absolute'
 				piece.style.left = (x - pieceOffsetX) * this.unit + 'px'
 				piece.style.top = (y - pieceOffsetY) * this.unit + 'px'
 				this.overlay.appendChild(piece)
