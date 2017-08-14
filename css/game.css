@@ -1,4 +1,6 @@
-.game .board-image {
+.game .background,
+.game .overlay {
+  position: absolute;
   width: 640px;
   height: 640px;
 }
