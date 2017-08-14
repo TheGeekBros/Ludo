@@ -54,7 +54,7 @@ let Ludo = {
 		let cpuCount = Number(this.opponents[2])
 
 		for (let p = 0; p < humanCount + cpuCount; p++) {
-			let player = {isCpu: p <= humanCount}
+			let player = {isCpu: p < humanCount}
 			this.game.players.push(player)
 		}
 
