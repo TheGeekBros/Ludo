@@ -25,11 +25,7 @@ let Ludo = {
 			boardStyle: 'simple-board',
 			opponents: '1-1', // fix symmetry
 		}
-		Object.assign(settings, customSettings)
-		this.boardStyle = settings.boardStyle
-		this.opponents = settings.opponents
-		this.radius = settings.radius
-		this.unit = settings.radius / 15
+		Object.assign(this, settings, customSettings)
 		this.resetBoard()
 	},
 
@@ -45,12 +41,10 @@ let Ludo = {
 		})
 
 		this.game.board.removeChild(this.game.board.querySelector('.pieces'))
-
 		this.background = this.game.board.querySelector('.background')
 		this.overlay = this.game.board.querySelector('.overlay')
-
-		this.background.style.width = this.overlay.style.width = this.radius + 'px'
-		this.background.style.height = this.overlay.style.height = this.radius + 'px'
+		this.background.style.width = this.overlay.style.width =
+			this.background.style.height = this.overlay.style.height = this.radius + 'px'
 
 		let humanCount = Number(this.opponents[0]), cpuCount = Number(this.opponents[2])
 
