@@ -23,7 +23,7 @@ let Ludo = {
 			radius: 640,
 			unit: 640 / 15,
 			boardStyle: 'simple-board',
-			opponents: '1-1', // fix symmetry
+			opponents: '1-1', // TODO: When game is set to 1-2, order should be CPU-HUMAN-CPU (YELLOW-BLUE-RED)
 		}
 		Object.assign(this, settings, customSettings)
 		this.resetBoard()
