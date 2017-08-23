@@ -5,6 +5,7 @@
   height: 640px;
 }
 .game .piece {
+  cursor: pointer;
   position: absolute;
   width: 48px;
   height: 48px;
