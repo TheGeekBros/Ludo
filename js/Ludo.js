@@ -4,6 +4,7 @@ let Ludo = {
 		playersCount: 0,
 		board: '',
 		pieces: [],
+		piecesCorner: [],
 		players: [],
 		defaultPositions: {
 			home: [
@@ -22,7 +23,7 @@ let Ludo = {
 		let settings = {
 			radius: 640,
 			unit: 640 / 15,
-			boardStyle: 'simple-board',
+			boardStyle: 'classic',
 			opponents: '1-1', // TODO: When game is set to 1-2, order should be CPU-HUMAN-CPU (YELLOW-BLUE-RED)
 		}
 		Object.assign(this, settings, customSettings)
@@ -31,7 +32,7 @@ let Ludo = {
 
 	resetBoard() {
 		this.context.innerHTML = ''
-		this.game.board = Components.new(this.boardStyle)
+		this.game.board = Common.newComponent(this.boardStyle)
 		this.context.appendChild(this.game.board)
 
 		let gamePieces = this.game.board.querySelector('.pieces')
@@ -74,4 +75,48 @@ let Ludo = {
 			element.style.height = element.style.width = this.unit + 'px'
 		})
 	},
+}
+
+class piece {
+	id = 0
+	location = {x: 0, y: 0}
+	shrinked = false
+	html
+	static unit
+	view = {normal: '', shrinked: ''}
+
+	constructor(profile) {
+		Object.assign(this, profile)
+		this.html.style.position = 'absolute'
+		this.view.normal = this.html.getAttribute('data-src')
+		this.view.shrinked = this.html.getAttribute('data-shrinked-src')
+	}
+
+	moveTo(location) {
+		this.reflectView()
+		this.html.style.left = (location.x * this.unit) + 'px'
+		this.html.style.top = (location.y * this.unit) + 'px'
+	}
+
+	animateTo(location) {
+		this.reflectView()
+		this.html.style.left = (location.x * this.unit) + 'px'
+		this.html.style.top = (location.y * this.unit) + 'px'
+	}
+
+	reflectView() {
+		this.html.setAttribute('src', this.shrinked ? this.view.shrinked : this.view.normal)
+	}
+
+	shrink() {
+		this.shrinked = true
+		this.reflectView()
+	}
+
+	normal() {
+		this.shrinked = false
+		this.reflectView()
+	}
+
+
 }
