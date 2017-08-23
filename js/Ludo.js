@@ -4,6 +4,7 @@ let Ludo = {
 		playersCount: 0,
 		board: '',
 		pieces: [],
+		pieceTemplates: [],
 		piecesCorner: [],
 		players: [],
 		defaultPositions: {
@@ -22,11 +23,11 @@ let Ludo = {
 	init(customSettings) {
 		let settings = {
 			radius: 640,
-			unit: 640 / 15,
 			boardStyle: 'classic',
-			opponents: '1-1', // TODO: When game is set to 1-2, order should be CPU-HUMAN-CPU (YELLOW-BLUE-RED)
+			gameMode: '1-1', // TODO: When game is set to 1-2, order should be CPU-HUMAN-CPU (YELLOW-BLUE-RED)
 		}
 		Object.assign(this, settings, customSettings)
+		this.unit = this.radius / 15
 		this.resetBoard()
 	},
 
@@ -38,7 +39,7 @@ let Ludo = {
 		let gamePieces = this.game.board.querySelector('.pieces')
 
 		Array.from(gamePieces.children).forEach((piece) => {
-			this.game.pieces.push(piece.cloneNode(false))
+			this.game.pieceTemplates.push(piece.cloneNode(false))
 		})
 
 		this.game.board.removeChild(this.game.board.querySelector('.pieces'))
@@ -47,11 +48,10 @@ let Ludo = {
 		this.background.style.width = this.overlay.style.width =
 			this.background.style.height = this.overlay.style.height = this.radius + 'px'
 
-		let humanCount = Number(this.opponents[0]), cpuCount = Number(this.opponents[2])
+		let humanCount = Number(this.gameMode[0]), cpuCount = Number(this.gameMode[2])
 
 		for (let p = 0; p < humanCount + cpuCount; p++) {
-			let player = {isCpu: p < humanCount}
-			this.game.players.push(player)
+			this.game.players.push({isCpu: p < humanCount})
 		}
 
 		this.game.playersCount = humanCount + cpuCount
@@ -59,49 +59,49 @@ let Ludo = {
 
 		for (let playerIndex = 0; playerIndex < this.game.playersCount; playerIndex++) {
 			for (let pieceIndex = 0; pieceIndex < 4; pieceIndex++) {
-				let piece = this.game.pieces[playerIndex].cloneNode(false)
-				let x = this.game.defaultPositions.home[playerIndex].x
-				let y = this.game.defaultPositions.home[playerIndex].y
-				let pieceOffsetX = this.game.defaultPositions.homeOffset[pieceIndex][0]
-				let pieceOffsetY = this.game.defaultPositions.homeOffset[pieceIndex][1]
-				piece.style.position = 'absolute'
-				piece.style.left = (x - pieceOffsetX) * this.unit + 'px'
-				piece.style.top = (y - pieceOffsetY) * this.unit + 'px'
-				this.overlay.appendChild(piece)
+				let x = this.game.defaultPositions.home[playerIndex].x,
+					y = this.game.defaultPositions.home[playerIndex].y,
+					pieceOffsetX = this.game.defaultPositions.homeOffset[pieceIndex][0],
+					pieceOffsetY = this.game.defaultPositions.homeOffset[pieceIndex][1],
+					piece = new Piece({
+						id: (playerIndex + 1) + '-' + (pieceIndex + 1),
+						location: {
+							x: x - pieceOffsetX,
+							y: y - pieceOffsetY
+						},
+						unit: this.unit,
+						shrinked: false,
+						html: this.game.pieceTemplates[playerIndex].cloneNode(false)
+					})
+				this.overlay.appendChild(piece.html)
+				this.game.pieces.push(piece)
 			}
 		}
-
-		this.overlay.querySelectorAll('.piece').forEach((element) => {
-			element.style.height = element.style.width = this.unit + 'px'
-		})
 	},
 }
 
-class piece {
-	id = 0
-	location = {x: 0, y: 0}
-	shrinked = false
-	html
-	static unit
-	view = {normal: '', shrinked: ''}
-
+class Piece {
 	constructor(profile) {
 		Object.assign(this, profile)
 		this.html.style.position = 'absolute'
-		this.view.normal = this.html.getAttribute('data-src')
-		this.view.shrinked = this.html.getAttribute('data-shrinked-src')
+		this.view = {
+			normal: this.html.getAttribute('data-src'),
+			shrinked: this.html.getAttribute('data-shrinked-src')
+		}
+		this.html.style.left = (profile.location.x * this.unit) + 'px'
+		this.html.style.top = (profile.location.y * this.unit) + 'px'
+		this.html.style.height = this.html.style.width = this.unit + 'px'
+		this.reflectView()
 	}
 
 	moveTo(location) {
 		this.reflectView()
-		this.html.style.left = (location.x * this.unit) + 'px'
-		this.html.style.top = (location.y * this.unit) + 'px'
-	}
-
-	animateTo(location) {
-		this.reflectView()
-		this.html.style.left = (location.x * this.unit) + 'px'
-		this.html.style.top = (location.y * this.unit) + 'px'
+		this.location = location
+		anime({
+			targets: this.html,
+			left: this.location.x * this.unit,
+			top: this.location.y * this.unit
+		})
 	}
 
 	reflectView() {
@@ -117,6 +117,4 @@ class piece {
 		this.shrinked = false
 		this.reflectView()
 	}
-
-
 }
