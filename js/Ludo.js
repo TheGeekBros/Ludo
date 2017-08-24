@@ -50,12 +50,12 @@ let Ludo = {
 
 		let humanCount = Number(this.gameMode[0]), cpuCount = Number(this.gameMode[2])
 
+		this.game.playersCount = humanCount + cpuCount
+		console.assert(1 <= this.game.playersCount <= 4)
+
 		for (let p = 0; p < humanCount + cpuCount; p++) {
 			this.game.players.push({isCpu: p < humanCount})
 		}
-
-		this.game.playersCount = humanCount + cpuCount
-		console.assert(1 <= this.game.playersCount <= 4)
 
 		for (let playerIndex = 0; playerIndex < this.game.playersCount; playerIndex++) {
 			for (let pieceIndex = 0; pieceIndex < 4; pieceIndex++) {
