@@ -2,43 +2,55 @@
 <html>
 
 <head>
-	<title>Web Ludo Multiplayer</title>
+    <title>Web Ludo Multiplayer</title>
     <link rel="stylesheet" href="css/ui.css">
     <link rel="stylesheet" href="css/game.css">
 </head>
 
 <body>
-    <div class="menu">
+<div class="menu">
 
-    </div>
-	<div class="game">
+</div>
+<div class="game">
 
-	</div>
-    <div class="components">
-        <div class="classic">
-            <div class="board">
-                <img class="background" src="boards/classic/board.png">
-                <div class="overlay">
-                </div>
-            </div>
-            <div class="pieces">
-                <img class="piece" data-src="boards/classic/piece-blue.png" data-shrinked-src="boards/classic/piece-blue-shrinked.png">
-                <img class="piece" data-src="boards/classic/piece-green.png" data-shrinked-src="boards/classic/piece-green-shrinked.png">
-                <img class="piece" data-src="boards/classic/piece-yellow.png" data-shrinked-src="boards/classic/piece-yellow-shrinked.png">
-                <img class="piece" data-src="boards/classic/piece-red.png" data-shrinked-src="boards/classic/piece-red-shrinked.png">
+</div>
+<div class="components">
+    <div class="classic">
+        <div class="board">
+            <img class="background" src="boards/classic/board.png">
+            <div class="overlay">
             </div>
         </div>
+        <div class="pieces">
+            <img class="piece" data-src="boards/classic/piece-blue.png"
+                 data-shrinked-src="boards/classic/piece-blue-shrinked.png">
+            <img class="piece" data-src="boards/classic/piece-green.png"
+                 data-shrinked-src="boards/classic/piece-green-shrinked.png">
+            <img class="piece" data-src="boards/classic/piece-yellow.png"
+                 data-shrinked-src="boards/classic/piece-yellow-shrinked.png">
+            <img class="piece" data-src="boards/classic/piece-red.png"
+                 data-shrinked-src="boards/classic/piece-red-shrinked.png">
+        </div>
+        <img class="dice"
+             data-face-1-src="boards/classic/dice-1.png"
+             data-face-2-src="boards/classic/dice-2.png"
+             data-face-3-src="boards/classic/dice-3.png"
+             data-face-4-src="boards/classic/dice-4.png"
+             data-face-5-src="boards/classic/dice-5.png"
+             data-face-6-src="boards/classic/dice-6.png"
+        >
     </div>
-    <script src="js/anime.min.js"></script>
-    <script src="js/Ludo.js"></script>
-    <script src="js/main.js"></script>
-    <script>
-        Ludo.init({
-			radius: 640,
-			boardStyle: 'classic',
-			gameMode: '1-1'
-        })
-    </script>
+</div>
+<script src="js/anime.min.js"></script>
+<script src="js/Ludo.js"></script>
+<script src="js/main.js"></script>
+<script>
+	Ludo.init({
+		radius: 640,
+		boardStyle: 'classic',
+		gameMode: '1-1'
+	})
+</script>
 </body>
 
 </html>
