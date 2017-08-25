@@ -7,16 +7,23 @@ let Ludo = {
 		pieceTemplates: [],
 		piecesCorner: [],
 		players: [],
+		dice: '',
 		defaultPositions: {
-			home: [
+			slotCenter: [
 				{x: 2.5, y: 11.5},  // blue (1)
 				{x: 11.5, y: 2.5},  // green (2)
 				{x: 11.5, y: 11.5}, // yellow (3)
 				{x: 2.5, y: 2.5},   // red (4)
 			],
-			homeOffset: [
+			slotCenterOffset: [
 				[-1, -1], [-1, 1], [1, -1], [1, 1]
-			]
+			],
+			firstCell: [
+				{x: 7, y: 14},
+				{x: 9, y: 2},
+				{x: 14, y: 9},
+				{x: 2, y: 7},
+			],
 		}
 	},
 
@@ -29,6 +36,7 @@ let Ludo = {
 		Object.assign(this, settings, customSettings)
 		this.unit = this.radius / 15
 		this.resetBoard()
+		this.setupDice()
 	},
 
 	resetBoard() {
@@ -43,8 +51,8 @@ let Ludo = {
 		})
 
 		this.game.board.removeChild(this.game.board.querySelector('.pieces'))
-		this.background = this.game.board.querySelector('.background')
 		this.overlay = this.game.board.querySelector('.overlay')
+		this.background = this.game.board.querySelector('.background')
 		this.background.style.width = this.overlay.style.width =
 			this.background.style.height = this.overlay.style.height = this.radius + 'px'
 
@@ -59,10 +67,10 @@ let Ludo = {
 
 		for (let playerIndex = 0; playerIndex < this.game.playersCount; playerIndex++) {
 			for (let pieceIndex = 0; pieceIndex < 4; pieceIndex++) {
-				let x = this.game.defaultPositions.home[playerIndex].x,
-					y = this.game.defaultPositions.home[playerIndex].y,
-					pieceOffsetX = this.game.defaultPositions.homeOffset[pieceIndex][0],
-					pieceOffsetY = this.game.defaultPositions.homeOffset[pieceIndex][1],
+				let x = this.game.defaultPositions.slotCenter[playerIndex].x,
+					y = this.game.defaultPositions.slotCenter[playerIndex].y,
+					pieceOffsetX = this.game.defaultPositions.slotCenterOffset[pieceIndex][0],
+					pieceOffsetY = this.game.defaultPositions.slotCenterOffset[pieceIndex][1],
 					piece = new Piece({
 						id: (playerIndex + 1) + '-' + (pieceIndex + 1),
 						location: {
@@ -71,26 +79,68 @@ let Ludo = {
 						},
 						unit: this.unit,
 						shrinked: false,
-						html: this.game.pieceTemplates[playerIndex].cloneNode(false)
+						view: this.game.pieceTemplates[playerIndex].cloneNode(false)
 					})
-				this.overlay.appendChild(piece.html)
+				this.overlay.appendChild(piece.view)
 				this.game.pieces.push(piece)
 			}
 		}
 	},
+
+	setupDice() {
+		this.game.dice = this.game.board.querySelector('.dice')
+		this.overlay.appendChild(this.game.dice)
+		this.game.dice.style.position = 'absolute'
+		let diceRadius = (this.unit * 1.5)
+		this.game.dice.style.height = this.game.dice.style.width = diceRadius + 'px'
+		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - diceRadius / 2 + 'px'
+		this.game.dice.setAttribute('src', Common.getAttribute(this.game.dice, 'face-6-src'))
+	},
+
+	randomRoll(){
+		return 1 + Math.round(Math.random() * 5)
+	},
+
+	rollDice(callback) {
+		callback = callback || function () { console.log("callback called") }
+		let roll = this.randomRoll()
+
+		let diceAnim = anime.timeline({complete:callback})
+		let animationParams = {targets: this.game.dice, translateX: "+=30", rotate: "+=30", complete: changeFace}
+		diceAnim.add(animationParams).add(animationParams).add(animationParams).add(animationParams)
+
+		function changeFace(anim) {
+			let target = anim.animatables[0].target
+			let faceAttr = 'face-' + (1 + Math.round(Math.random() * 5)) + '-src'
+			target.setAttribute('src', Common.getAttribute(target, faceAttr))
+		}
+
+		/*let animateDice = anime({
+			targets: this.game.dice,
+			rotate: "+=30",
+			duration: 1000,
+			loop: 6,
+			update: changeFace,
+			complete: callback
+		})*/
+	},
+
+	start() {
+
+	}
 }
 
 class Piece {
 	constructor(profile) {
 		Object.assign(this, profile)
-		this.html.style.position = 'absolute'
-		this.view = {
-			normal: this.html.getAttribute('data-src'),
-			shrinked: this.html.getAttribute('data-shrinked-src')
+		this.view.style.position = 'absolute'
+		this.state = {
+			normal: this.view.getAttribute('data-src'),
+			shrinked: this.view.getAttribute('data-shrinked-src')
 		}
-		this.html.style.left = (profile.location.x * this.unit) + 'px'
-		this.html.style.top = (profile.location.y * this.unit) + 'px'
-		this.html.style.height = this.html.style.width = this.unit + 'px'
+		this.view.style.left = (this.location.x * this.unit) + 'px'
+		this.view.style.top = (this.location.y * this.unit) + 'px'
+		this.view.style.height = this.view.style.width = this.unit + 'px'
 		this.reflectView()
 	}
 
@@ -98,14 +148,14 @@ class Piece {
 		this.reflectView()
 		this.location = location
 		anime({
-			targets: this.html,
+			targets: this.view,
 			left: this.location.x * this.unit,
 			top: this.location.y * this.unit
 		})
 	}
 
 	reflectView() {
-		this.html.setAttribute('src', this.shrinked ? this.view.shrinked : this.view.normal)
+		this.view.setAttribute('src', this.shrinked ? this.state.shrinked : this.state.normal)
 	}
 
 	shrink() {
