@@ -118,13 +118,13 @@ let Ludo = {
 		let signA = this.random6() % 2 === 0 ? '-' : '+'
 		let signB = this.random6() % 2 === 0 ? '-' : '+'
 
-		for(let frames = 0; frames < 7; frames++) {
+		for(let keyFrames = 0; keyFrames < 7; keyFrames++) {
 			diceAnim.add({
 				targets: this.game.dice,
 				rotate: "+=" + this.random6() * 10,
-				duration: 10 + frames * 10,
-				complete: frames < 6 ? changeFace : endFace,
-				scale: 0.4 + (frames * 0.1),
+				duration: 10 + keyFrames * 10,
+				complete: keyFrames < 6 ? changeFace : endFace,
+				scale: 0.4 + (keyFrames * 0.1),
 				left: signA + '=' + (Math.random() * 5),
 				top : signB + '=' + (Math.random() * 5),
 			})
