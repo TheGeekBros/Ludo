@@ -1,4 +1,6 @@
 .game {
+	user-select: none;
+	line-height: 0;
 	.background, .overlay {
 		position: absolute;
 		width: 640px;
@@ -8,10 +10,14 @@
 
 	}
 	.piece {
+		user-select: none;
 		cursor: pointer;
 		position: absolute;
 		width: 48px;
 		height: 48px;
+	}
+	.dice {
+		cursor: pointer;
 	}
 }
 
