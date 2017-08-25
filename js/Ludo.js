@@ -107,66 +107,40 @@ let Ludo = {
 	rollDice(callback, roll) {
 		callback = callback || function () {
 				console.log("callback called")
-			}
+		}
+
 		roll = roll || this.random6()
-		let signA = this.random6() >> 1 ? -1 : 1
-		let signB = this.random6() >> 1 ? -1 : 1
 
 		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - this.diceRadius / 2 + 'px'
 
 		let diceAnim = anime.timeline()
-		/*
-		* Couldn't find a better way to deal with this. ¯\_(ツ)_/¯
-		* */
-		diceAnim
-		.add({
-			targets: this.game.dice,
-			rotate: "+=" + this.random6() * 10,
-			complete: changeFace,
-			duration: 20,
-			scale: 0.5
-		})
-		.add({
-			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 40,
-			scale: 0.55
-		})
-		.add({
-			targets: this.game.dice, rotate: "+=" + this.random6() * 10, complete: changeFace, duration: 20,
-			scale: 0.65
-		})
-		.add({
-			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 40,
-			scale: 0.7
-		})
-		.add({
-			targets: this.game.dice, rotate: "+=" + this.random6() * 10, complete: changeFace, duration: 80,
-			scale: 0.8
-		})
-		.add({
-			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 100,
-			scale: 0.9
-		})
-		.add({targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: finalFace, duration: 20,
-			scale: 1
-		})
+
+		let signA = this.random6() % 2 === 0 ? '-' : '+'
+		let signB = this.random6() % 2 === 0 ? '-' : '+'
+
+		for(let frames = 0; frames < 7; frames++) {
+			diceAnim.add({
+				targets: this.game.dice,
+				rotate: "+=" + this.random6() * 10,
+				duration: 10 + frames * 10,
+				complete: frames < 6 ? changeFace : endFace,
+				scale: 0.4 + (frames * 0.1),
+				left: signA + '=' + (Math.random() * 5),
+				top : signB + '=' + (Math.random() * 5),
+			})
+		}
 
 		function changeFace(anim) {
-			let target = anim.animatables[0].target
 			let faceAttr = 'face-' + (1 + Math.round(Math.random() * 5)) + '-src'
-			target.style.left = Number(target.style.left.slice(0, -2)) * signA + Math.random() * 5 + 'px'
-			target.style.top = Number(target.style.top.slice(0, -2)) * signB + Math.random() * 5 + 'px'
-			target.setAttribute('src', Common.getAttribute(target, faceAttr))
-		}
-
-		function finalFace(anim) {
 			let target = anim.animatables[0].target
-			let faceAttr = 'face-' + roll + '-src'
 			target.setAttribute('src', Common.getAttribute(target, faceAttr))
 		}
-	},
 
-	start() {
-
+		function endFace(anim) {
+			let faceAttr = 'face-' + roll + '-src'
+			let target = anim.animatables[0].target
+			target.setAttribute('src', Common.getAttribute(target, faceAttr))
+		}
 	}
 }
 
