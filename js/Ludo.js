@@ -8,6 +8,7 @@ let Ludo = {
 		piecesCorner: [],
 		players: [],
 		dice: '',
+		diceLock: true,
 		defaultPositions: {
 			slotCenter: [
 				{x: 2.5, y: 11.5},  // blue (1)
@@ -35,6 +36,7 @@ let Ludo = {
 		}
 		Object.assign(this, settings, customSettings)
 		this.unit = this.radius / 15
+		this.diceRadius = this.unit * 1.5
 		this.resetBoard()
 		this.setupDice()
 	},
@@ -85,44 +87,82 @@ let Ludo = {
 				this.game.pieces.push(piece)
 			}
 		}
+
 	},
 
 	setupDice() {
 		this.game.dice = this.game.board.querySelector('.dice')
 		this.overlay.appendChild(this.game.dice)
 		this.game.dice.style.position = 'absolute'
-		let diceRadius = (this.unit * 1.5)
-		this.game.dice.style.height = this.game.dice.style.width = diceRadius + 'px'
-		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - diceRadius / 2 + 'px'
+		this.game.dice.style.height = this.game.dice.style.width = this.diceRadius + 'px'
+		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - this.diceRadius / 2 + 'px'
 		this.game.dice.setAttribute('src', Common.getAttribute(this.game.dice, 'face-6-src'))
+		this.game.dice.addEventListener('click', this.rollDice.bind(this, null, null))
 	},
 
-	randomRoll(){
+	random6(){
 		return 1 + Math.round(Math.random() * 5)
 	},
 
-	rollDice(callback) {
-		callback = callback || function () { console.log("callback called") }
-		let roll = this.randomRoll()
+	rollDice(callback, roll) {
+		callback = callback || function () {
+				console.log("callback called")
+			}
+		roll = roll || this.random6()
+		let signA = this.random6() >> 1 ? -1 : 1
+		let signB = this.random6() >> 1 ? -1 : 1
 
-		let diceAnim = anime.timeline({complete:callback})
-		let animationParams = {targets: this.game.dice, translateX: "+=30", rotate: "+=30", complete: changeFace}
-		diceAnim.add(animationParams).add(animationParams).add(animationParams).add(animationParams)
+		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - this.diceRadius / 2 + 'px'
+
+		let diceAnim = anime.timeline()
+		/*
+		* Couldn't find a better way to deal with this. ¯\_(ツ)_/¯
+		* */
+		diceAnim
+		.add({
+			targets: this.game.dice,
+			rotate: "+=" + this.random6() * 10,
+			complete: changeFace,
+			duration: 20,
+			scale: 0.5
+		})
+		.add({
+			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 40,
+			scale: 0.55
+		})
+		.add({
+			targets: this.game.dice, rotate: "+=" + this.random6() * 10, complete: changeFace, duration: 20,
+			scale: 0.65
+		})
+		.add({
+			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 40,
+			scale: 0.7
+		})
+		.add({
+			targets: this.game.dice, rotate: "+=" + this.random6() * 10, complete: changeFace, duration: 80,
+			scale: 0.8
+		})
+		.add({
+			targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: changeFace, duration: 100,
+			scale: 0.9
+		})
+		.add({targets: this.game.dice, rotate: "-=" + this.random6() * 10, complete: finalFace, duration: 20,
+			scale: 1
+		})
 
 		function changeFace(anim) {
 			let target = anim.animatables[0].target
 			let faceAttr = 'face-' + (1 + Math.round(Math.random() * 5)) + '-src'
+			target.style.left = Number(target.style.left.slice(0, -2)) * signA + Math.random() * 5 + 'px'
+			target.style.top = Number(target.style.top.slice(0, -2)) * signB + Math.random() * 5 + 'px'
 			target.setAttribute('src', Common.getAttribute(target, faceAttr))
 		}
 
-		/*let animateDice = anime({
-			targets: this.game.dice,
-			rotate: "+=30",
-			duration: 1000,
-			loop: 6,
-			update: changeFace,
-			complete: callback
-		})*/
+		function finalFace(anim) {
+			let target = anim.animatables[0].target
+			let faceAttr = 'face-' + roll + '-src'
+			target.setAttribute('src', Common.getAttribute(target, faceAttr))
+		}
 	},
 
 	start() {
