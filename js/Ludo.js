@@ -11,20 +11,19 @@ let Ludo = {
 		diceLock: true,
 		defaultPositions: {
 			slotCenter: [
-				{x: 2.5, y: 11.5},  // blue (1)
-				{x: 11.5, y: 2.5},  // green (2)
-				{x: 11.5, y: 11.5}, // yellow (3)
-				{x: 2.5, y: 2.5},   // red (4)
+				// b g y r
+				{x: 2.5, y: 11.5}, {x: 11.5, y: 2.5}, {x: 11.5, y: 11.5}, {x: 2.5, y: 2.5}
 			],
 			slotCenterOffset: [
 				[-1, -1], [-1, 1], [1, -1], [1, 1]
 			],
 			firstCell: [
-				{x: 7, y: 14},
-				{x: 9, y: 2},
-				{x: 14, y: 9},
-				{x: 2, y: 7},
+				{x: 7, y: 14}, {x: 9, y: 2}, {x: 14, y: 9}, {x: 2, y: 7}
 			],
+			diceCenter: [],
+			slotBackground: [
+				{x: 0, y: 9}, {x: 9, y: 0}, {x: 9, y: 9}, {x: 0, y: 0}
+			]
 		}
 	},
 
@@ -37,18 +36,16 @@ let Ludo = {
 		Object.assign(this, settings, customSettings)
 		this.unit = this.radius / 15
 		this.diceRadius = this.unit * 1.5
+		this.game.defaultPositions.diceCenter = (this.unit * 7.5) - (this.diceRadius / 2)
 		this.resetBoard()
 		this.setupDice()
 	},
 
 	resetBoard() {
 		this.context.innerHTML = ''
-		this.game.board = Common.newComponent(this.boardStyle)
-		this.context.appendChild(this.game.board)
+		this.game.board = this.context.appendChild(Common.newComponent(this.boardStyle))
 
-		let gamePieces = this.game.board.querySelector('.pieces')
-
-		Array.from(gamePieces.children).forEach((piece) => {
+		Array.from(this.game.board.querySelector('.pieces').children).forEach((piece) => {
 			this.game.pieceTemplates.push(piece.cloneNode(false))
 		})
 
@@ -88,14 +85,24 @@ let Ludo = {
 			}
 		}
 
+		this.game.block = this.game.board.appendChild(this.context.querySelector('.block'))
+		Common.setCSS(this.game.block, {
+			position: 'absolute',
+			width: this.unit * 6,
+			height: this.unit * 6,
+			zIndex: -1
+		})
 	},
 
 	setupDice() {
-		this.game.dice = this.game.board.querySelector('.dice')
-		this.overlay.appendChild(this.game.dice)
-		this.game.dice.style.position = 'absolute'
-		this.game.dice.style.height = this.game.dice.style.width = this.diceRadius + 'px'
-		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - this.diceRadius / 2 + 'px'
+		this.game.dice = this.overlay.appendChild(this.game.board.querySelector('.dice'))
+		Common.setCSS(this.game.dice, {
+			position: 'absolute',
+			height: this.diceRadius,
+			width: this.diceRadius,
+			left: this.game.defaultPositions.diceCenter,
+			top: this.game.defaultPositions.diceCenter,
+		})
 		this.game.dice.setAttribute('src', Common.getAttribute(this.game.dice, 'face-6-src'))
 		this.game.dice.addEventListener('click', this.rollDice.bind(this, null, null))
 	},
@@ -107,18 +114,18 @@ let Ludo = {
 	rollDice(callback, roll) {
 		callback = callback || function () {
 				console.log("callback called")
-		}
+			}
 
 		roll = roll || this.random6()
 
-		this.game.dice.style.left = this.game.dice.style.top = (this.unit * 7.5) - this.diceRadius / 2 + 'px'
+		this.game.dice.style.left = this.game.dice.style.top = this.game.defaultPositions.diceCenter + 'px'
 
 		let diceAnim = anime.timeline()
 
 		let signA = this.random6() % 2 === 0 ? '-' : '+'
 		let signB = this.random6() % 2 === 0 ? '-' : '+'
 
-		for(let keyFrames = 0; keyFrames < 7; keyFrames++) {
+		for (let keyFrames = 0; keyFrames < 7; keyFrames++) {
 			diceAnim.add({
 				targets: this.game.dice,
 				rotate: "+=" + this.random6() * 10,
@@ -126,7 +133,7 @@ let Ludo = {
 				complete: keyFrames < 6 ? changeFace : endFace,
 				scale: 0.4 + (keyFrames * 0.1),
 				left: signA + '=' + (Math.random() * 5),
-				top : signB + '=' + (Math.random() * 5),
+				top: signB + '=' + (Math.random() * 5),
 			})
 		}
 
@@ -141,20 +148,35 @@ let Ludo = {
 			let target = anim.animatables[0].target
 			target.setAttribute('src', Common.getAttribute(target, faceAttr))
 		}
+	},
+	indicateTurn (playerIndex) {
+		let location = this.game.defaultPositions.slotBackground[playerIndex]
+		let src = Common.getAttribute(this.game.block, (playerIndex + 1) + '-src')
+		this.game.block.setAttribute('src', src)
+		Common.setCSS(this.game.block, {
+			top: location.y * this.unit,
+			left: location.x * this.unit
+		})
+	},
+	play() {
+
 	}
 }
 
 class Piece {
 	constructor(profile) {
 		Object.assign(this, profile)
-		this.view.style.position = 'absolute'
-		this.state = {
-			normal: this.view.getAttribute('data-src'),
-			shrinked: this.view.getAttribute('data-shrinked-src')
+		this.size = {
+			normal: Common.getAttribute(this.view, 'src'),
+			shrinked: Common.getAttribute(this.view, 'shrinked-src')
 		}
-		this.view.style.left = (this.location.x * this.unit) + 'px'
-		this.view.style.top = (this.location.y * this.unit) + 'px'
-		this.view.style.height = this.view.style.width = this.unit + 'px'
+		Common.setCSS(this.view, {
+			position: 'absolute',
+			left: this.location.x * this.unit,
+			top: this.location.y * this.unit,
+			height: this.unit,
+			width: this.unit
+		})
 		this.reflectView()
 	}
 
@@ -169,7 +191,7 @@ class Piece {
 	}
 
 	reflectView() {
-		this.view.setAttribute('src', this.shrinked ? this.state.shrinked : this.state.normal)
+		this.view.setAttribute('src', this.shrinked ? this.size.shrinked : this.size.normal)
 	}
 
 	shrink() {
