@@ -18,13 +18,15 @@ let Ludo = {
 				[-1, -1], [-1, 1], [1, -1], [1, 1]
 			],
 			firstCell: [
-				{x: 7, y: 14}, {x: 9, y: 2}, {x: 14, y: 9}, {x: 2, y: 7}
+				{x: 6, y: 13}, {x: 8, y: 1}, {x: 13, y: 8}, {x: 1, y: 6}
 			],
 			diceCenter: [],
 			slotBackground: [
 				{x: 0, y: 9}, {x: 9, y: 0}, {x: 9, y: 9}, {x: 0, y: 0}
 			]
-		}
+		},
+		turns: [],
+		onField: []
 	},
 
 	init(customSettings) {
@@ -58,7 +60,7 @@ let Ludo = {
 		let humanCount = Number(this.gameMode[0]), cpuCount = Number(this.gameMode[2])
 
 		this.game.playersCount = humanCount + cpuCount
-		console.assert(1 <= this.game.playersCount <= 4)
+		console.assert(1 <= this.game.playersCount && this.game.playersCount <= 4)
 
 		for (let p = 0; p < humanCount + cpuCount; p++) {
 			this.game.players.push({isCpu: p < humanCount})
@@ -71,11 +73,13 @@ let Ludo = {
 					pieceOffsetX = this.game.defaultPositions.slotCenterOffset[pieceIndex][0],
 					pieceOffsetY = this.game.defaultPositions.slotCenterOffset[pieceIndex][1],
 					piece = new Piece({
-						id: (playerIndex + 1) + '-' + (pieceIndex + 1),
+						playerIndex: playerIndex,
+						pieceIndex: pieceIndex,
 						location: {
 							x: x - pieceOffsetX,
 							y: y - pieceOffsetY
 						},
+						firstStep: this.game.defaultPositions.firstCell[playerIndex],
 						unit: this.unit,
 						shrinked: false,
 						view: this.game.pieceTemplates[playerIndex].cloneNode(false)
@@ -83,14 +87,23 @@ let Ludo = {
 				this.overlay.appendChild(piece.view)
 				this.game.pieces.push(piece)
 			}
+			this.game.onField.push(false)
 		}
 
-		this.game.block = this.game.board.appendChild(this.context.querySelector('.block'))
+		this.game.block = this.context.querySelector('.block')
 		Common.setCSS(this.game.block, {
 			position: 'absolute',
 			width: this.unit * 6,
 			height: this.unit * 6,
-			zIndex: -1
+			opacity: 0
+		})
+		anime({
+			targets: this.game.block,
+			opacity: 0.3,
+			direction: 'alternate',
+			loop: -1,
+			elasticity: 500,
+			duration: 500
 		})
 	},
 
@@ -150,13 +163,20 @@ let Ludo = {
 		}
 	},
 	indicateTurn (playerIndex) {
-		let location = this.game.defaultPositions.slotBackground[playerIndex]
-		let src = Common.getAttribute(this.game.block, (playerIndex + 1) + '-src')
-		this.game.block.setAttribute('src', src)
-		Common.setCSS(this.game.block, {
-			top: location.y * this.unit,
-			left: location.x * this.unit
-		})
+		if (0 <= playerIndex && playerIndex <= 3) {
+			let location = this.game.defaultPositions.slotBackground[playerIndex]
+			let src = Common.getAttribute(this.game.block, (playerIndex + 1) + '-src')
+			this.game.block.setAttribute('src', src)
+			Common.setCSS(this.game.block, {
+				display: 'block',
+				top: location.y * this.unit,
+				left: location.x * this.unit
+			})
+		} else {
+			Common.setCSS(this.game.block, {
+				display: 'none'
+			})
+		}
 	},
 	play() {
 
@@ -177,7 +197,77 @@ class Piece {
 			height: this.unit,
 			width: this.unit
 		})
+		this.defaultLocation = profile.location
+		this.firstStep = profile.firstStep
 		this.reflectView()
+		this.createPath()
+	}
+
+	createPath() {
+		this.path = [this.defaultLocation, this.firstStep]
+		this.pathPointer = 0
+		let stepLoopArray = [4, 1, 5, 2, 5, 1, 5, 2, 5, 1, 5, 2, 5, 1, 5, 1, 6]
+		let xSteps = [0, -1, -1, 0, 1, 1, 0, 1, 0, 1, 1, 0, -1, -1, 0, -1, 0, 0]
+		let ySteps = [-1, -1, 0, -1, 0, -1, -1, 0, 1, 1, 0, 1, 0, 1, 1, 0, -1]
+		switch (this.playerIndex) {
+			case 1:
+				xSteps = xSteps.map((x) => (x * -1))
+				ySteps = ySteps.map((y) => (y * -1))
+				break
+			case 2:
+				[xSteps, ySteps] = [ySteps, xSteps.map((x) => (x * -1))]
+				break
+			case 3:
+				[xSteps, ySteps] = [ySteps.map((y) => (y * -1)), xSteps]
+				break
+		}
+		for (let i = 0; i < stepLoopArray.length; i++) {
+			for (let j = 0; j < stepLoopArray[i]; j++) {
+				this.path.push({
+					x: this.previousStep.x + xSteps[i],
+					y: this.previousStep.y + ySteps[i]
+				})
+			}
+		}
+	}
+
+	get previousStep() {
+		return this.path[this.path.length - 1]
+	}
+
+	walkTo(from, to) {
+		if(from < to) {
+			to = to > 57 ? 57 : to
+			from = from < 0 ? 0 : from
+		} else {
+			from = from > 57 ? 57 : from
+			to = to < 0 ? 0 : to
+		}
+
+		let steps = to - from
+		let walkTimeline = anime.timeline()
+
+		if(steps > 0) {
+			for (let y = from + 1; y <= to; y++) {
+				walkTimeline.add({
+					targets: this.view,
+					left: this.path[y].x * this.unit,
+					top: this.path[y].y * this.unit,
+					duration: 100,
+					easing: 'linear'
+				})
+			}
+		} else {
+			for (let y = from - 1; y >= to ; y--) {
+				walkTimeline.add({
+					targets: this.view,
+					left: this.path[y].x * this.unit,
+					top: this.path[y].y * this.unit,
+					duration: 50,
+					easing: 'linear'
+				})
+			}
+		}
 	}
 
 	moveTo(location) {
@@ -188,6 +278,26 @@ class Piece {
 			left: this.location.x * this.unit,
 			top: this.location.y * this.unit
 		})
+	}
+
+	step(n) {
+		this.walkTo(this.pathPointer, this.pathPointer + n)
+		this.pathPointer += n
+		if(this.pathPointer < 0) {
+			this.pathPointer = 0
+		}
+		if(this.pathPointer > 57) {
+			this.pathPointer = 57
+		}
+	}
+
+	stepTo() {
+		this.moveTo(this.path[this.pathPointer])
+	}
+
+	die() {
+		this.pathPointer = 0
+		this.moveTo(this.path[this.pathPointer])
 	}
 
 	reflectView() {
