@@ -131,7 +131,10 @@ let Ludo = {
 
 		roll = roll || this.random6()
 
-		this.game.dice.style.left = this.game.dice.style.top = this.game.defaultPositions.diceCenter + 'px'
+		Common.setCSS(this.game.dice, {
+			left: this.game.defaultPositions.diceCenter,
+			top : this.game.defaultPositions.diceCenter
+		})
 
 		let diceAnim = anime.timeline()
 
@@ -177,9 +180,6 @@ let Ludo = {
 				display: 'none'
 			})
 		}
-	},
-	play() {
-
 	}
 }
 
@@ -236,7 +236,7 @@ class Piece {
 	}
 
 	walkTo(from, to) {
-		if(from < to) {
+		if (from < to) {
 			to = to > 57 ? 57 : to
 			from = from < 0 ? 0 : from
 		} else {
@@ -247,7 +247,7 @@ class Piece {
 		let steps = to - from
 		let walkTimeline = anime.timeline()
 
-		if(steps > 0) {
+		if (steps > 0) {
 			for (let y = from + 1; y <= to; y++) {
 				walkTimeline.add({
 					targets: this.view,
@@ -258,7 +258,7 @@ class Piece {
 				})
 			}
 		} else {
-			for (let y = from - 1; y >= to ; y--) {
+			for (let y = from - 1; y >= to; y--) {
 				walkTimeline.add({
 					targets: this.view,
 					left: this.path[y].x * this.unit,
@@ -270,34 +270,15 @@ class Piece {
 		}
 	}
 
-	moveTo(location) {
-		this.reflectView()
-		this.location = location
-		anime({
-			targets: this.view,
-			left: this.location.x * this.unit,
-			top: this.location.y * this.unit
-		})
-	}
-
 	step(n) {
 		this.walkTo(this.pathPointer, this.pathPointer + n)
 		this.pathPointer += n
-		if(this.pathPointer < 0) {
+		if (this.pathPointer < 0) {
 			this.pathPointer = 0
 		}
-		if(this.pathPointer > 57) {
+		if (this.pathPointer > 57) {
 			this.pathPointer = 57
 		}
-	}
-
-	stepTo() {
-		this.moveTo(this.path[this.pathPointer])
-	}
-
-	die() {
-		this.pathPointer = 0
-		this.moveTo(this.path[this.pathPointer])
 	}
 
 	reflectView() {
