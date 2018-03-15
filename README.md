@@ -1,4 +1,4 @@
-# Ludo [WIP]
+# Ludo [Work in progress]
 
 Remake of classical board game 'Ludo' in Javascript with online & offline multiplayer.
 
